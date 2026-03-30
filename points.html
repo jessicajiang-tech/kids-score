@@ -3,84 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jessie & Jim 集點大冒險</title>
+    <title>Jessie & Jim 集點系統 V3</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    
     <style>
-        :root {
-            --jessie-color: #ffafcc;
-            --jim-color: #a2d2ff;
-            --bg-color: #f8f9fa;
-        }
+        :root { --jessie-color: #ffafcc; --jim-color: #a2d2ff; --bg-color: #f8f9fa; }
         body { font-family: "Microsoft JhengHei", sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        h1 { color: #444; margin-bottom: 10px; }
-        .top-nav { margin-bottom: 20px; }
         .container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 1000px; }
-        .card { background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; width: 320px; text-align: center; }
+        .card { background: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; width: 330px; text-align: center; }
         .jessie { border-top: 8px solid var(--jessie-color); }
         .jim { border-top: 8px solid var(--jim-color); }
-        .score { font-size: 56px; font-weight: bold; margin: 10px 0; color: #333; }
-        .controls { display: flex; flex-direction: column; gap: 12px; }
-        input[type="text"] { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
-        input[type="text"]:focus { border-color: #aaa; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 15px; }
+        .score { font-size: 56px; font-weight: bold; margin: 5px 0; color: #333; }
+        .controls { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+        label { font-size: 14px; color: #666; font-weight: bold; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
         .plus { background-color: #57cc99; color: white; }
         .minus { background-color: #ff4d6d; color: white; }
-        .export-btn { background-color: #4361ee; color: white; padding: 12px 30px; font-size: 16px; border-radius: 30px; box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3); }
-        .clear-btn { background-color: #dee2e6; color: #666; margin-top: 20px; width: 100%; font-size: 13px; }
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-        button:active { transform: translateY(0); }
-        .history { margin-top: 20px; text-align: left; font-size: 0.85em; height: 200px; overflow-y: auto; border-top: 2px solid #f1f1f1; padding-top: 10px; }
-        .history-item { margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px; line-height: 1.4; }
+        .export-btn { background-color: #4361ee; color: white; padding: 12px 30px; border-radius: 30px; margin-bottom: 20px; }
+        .history { margin-top: 15px; text-align: left; font-size: 0.85em; height: 180px; overflow-y: auto; border-top: 2px solid #f1f1f1; padding-top: 10px; }
+        .history-item { margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
         .pos { color: #2d6a4f; font-weight: bold; }
         .neg { color: #a4133c; font-weight: bold; }
-        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 100; font-size: 20px; }
+        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 100; }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen" class="loading">正在連線雲端資料庫...</div>
+    <div id="loading-screen" class="loading">正在讀取雲端點數...</div>
 
-    <h1>🏆 Jessie & Jim 集點大冒險</h1>
-    
-    <div class="top-nav">
-        <button class="export-btn" onclick="exportToFile()">💾 下載完整紀錄 (.txt)</button>
-    </div>
+    <h1>🏆 Jessie & Jim 集點系統</h1>
+    <button class="export-btn" onclick="exportToFile()">💾 下載完整紀錄 (.txt)</button>
 
     <div class="container">
-        <div class="card jessie">
-            <h2>Jessie</h2>
-            <div id="score-jessie" class="score">0</div>
-            <div class="controls">
-                <input type="text" id="note-jessie" placeholder="請輸入加減分原因...">
-                <div class="btn-group">
-                    <button class="plus" onclick="updatePoints('jessie', 1)">+1 分</button>
-                    <button class="plus" onclick="updatePoints('jessie', 5)">+5 分</button>
-                    <button class="minus" onclick="updatePoints('jessie', -1)">-1 分</button>
-                    <button class="minus" onclick="updatePoints('jessie', -5)">-5 分</button>
-                </div>
-            </div>
-            <div class="history" id="history-jessie"><strong>最近紀錄：</strong></div>
-            <button class="clear-btn" onclick="clearData('jessie')">重設 Jessie 所有資料</button>
-        </div>
-
-        <div class="card jim">
-            <h2>Jim</h2>
-            <div id="score-jim" class="score">0</div>
-            <div class="controls">
-                <input type="text" id="note-jim" placeholder="請輸入加減分原因...">
-                <div class="btn-group">
-                    <button class="plus" onclick="updatePoints('jim', 1)">+1 分</button>
-                    <button class="plus" onclick="updatePoints('jim', 5)">+5 分</button>
-                    <button class="minus" onclick="updatePoints('jim', -1)">-1 分</button>
-                    <button class="minus" onclick="updatePoints('jim', -5)">-5 分</button>
-                </div>
-            </div>
-            <div class="history" id="history-jim"><strong>最近紀錄：</strong></div>
-            <button class="clear-btn" onclick="clearData('jim')">重設 Jim 所有資料</button>
-        </div>
+        <div id="ui-jessie"></div>
+        <div id="ui-jim"></div>
     </div>
 
     <script>
@@ -95,101 +53,113 @@
              appId: "1:464697539780:web:9f92d22a045ad1f6c61d91",
              measurementId: "G-00KDTMDKQJ"
         };
-        // ------------------------------------
+        // ---------------------------------
 
-        // 初始化 Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        let data = { jessie: { score: 0, history: [] }, jim: { score: 0, history: [] } };
 
-        let data = {
-            jessie: { score: 0, history: [] },
-            jim: { score: 0, history: [] }
-        };
+        // 初始化 UI 結構
+        function createCard(kid, displayName) {
+            const html = `
+                <div class="card ${kid}">
+                    <h2>${displayName}</h2>
+                    <div id="score-${kid}" class="score">0</div>
+                    <div class="controls">
+                        <label>1. 輸入點數 (正數加，負數減)</label>
+                        <input type="number" id="num-${kid}" value="1" step="1">
+                        
+                        <label>2. 選擇原因 (或手動輸入)</label>
+                        <select id="select-${kid}" onchange="syncNote('${kid}')">
+                            <option value="">-- 請選擇或在下方輸入 --</option>
+                            <option value="完成評量/考卷">完成評量/考卷</option>
+                            <option value="已兌換獎勵">已兌換獎勵</option>
+                            <option value="custom">自定義輸入...</option>
+                        </select>
+                        <input type="text" id="note-${kid}" placeholder="輸入具體表現...">
+                        
+                        <div class="btn-group">
+                            <button class="plus" onclick="handleUpdate('${kid}', 'plus')">確認加分</button>
+                            <button class="minus" onclick="handleUpdate('${kid}', 'minus')">確認扣分</button>
+                        </div>
+                    </div>
+                    <div class="history" id="history-${kid}">最近紀錄載入中...</div>
+                </div>
+            `;
+            document.getElementById(`ui-${kid}`).innerHTML = html;
+        }
 
-        // 監聽 Firebase 資料庫即時變化
+        createCard('jessie', 'Jessie');
+        createCard('jim', 'Jim');
+
+        // 當下拉選單改變時，同步到輸入框
+        function syncNote(kid) {
+            const select = document.getElementById(`select-${kid}`);
+            const noteInput = document.getElementById(`note-${kid}`);
+            if (select.value && select.value !== "custom") {
+                noteInput.value = select.value;
+            } else {
+                noteInput.value = "";
+            }
+        }
+
+        // 處理加減分邏輯
+        function handleUpdate(kid, type) {
+            const numInput = document.getElementById(`num-${kid}`);
+            const noteInput = document.getElementById(`note-${kid}`);
+            let val = parseInt(numInput.value) || 0;
+            
+            // 如果按的是扣分，且輸入的是正數，則轉為負數
+            if (type === 'minus' && val > 0) val = -val;
+            if (type === 'plus' && val < 0) val = Math.abs(val);
+
+            const note = noteInput.value.trim() || "表現優良/待改進";
+            const now = new Date();
+            const timestamp = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            data[kid].score += val;
+            if (!data[kid].history) data[kid].history = [];
+            data[kid].history.unshift({ time: timestamp, change: val > 0 ? `+${val}` : val, note: note, currentScore: data[kid].score });
+
+            db.ref('kidsData').set(data);
+            noteInput.value = "";
+            document.getElementById(`select-${kid}`).value = "";
+        }
+
         db.ref('kidsData').on('value', (snapshot) => {
             const cloudData = snapshot.val();
-            if (cloudData) {
-                data = cloudData;
-            }
+            if (cloudData) data = cloudData;
             document.getElementById('loading-screen').style.display = 'none';
             render();
         });
 
-        // 更新分數函數
-        function updatePoints(kid, change) {
-            const noteInput = document.getElementById(`note-${kid}`);
-            const note = noteInput.value.trim() || "表現優良/待改進";
-            const now = new Date();
-            const timestamp = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-            data[kid].score += change;
-            
-            // 確保 history 存在 (避免新專案出錯)
-            if (!data[kid].history) data[kid].history = [];
-            
-            data[kid].history.unshift({
-                time: timestamp,
-                change: change > 0 ? `+${change}` : change,
-                note: note,
-                currentScore: data[kid].score
-            });
-
-            // 推送到 Firebase
-            db.ref('kidsData').set(data);
-            noteInput.value = "";
-        }
-
-        // 清除紀錄函數
-        function clearData(kid) {
-            if (confirm(`確定要清除 ${kid} 的所有點數與歷史紀錄嗎？此動作不可撤銷。`)) {
-                data[kid] = { score: 0, history: [] };
-                db.ref('kidsData').set(data);
-            }
-        }
-
-        // 渲染畫面
         function render() {
             ['jessie', 'jim'].forEach(kid => {
                 document.getElementById(`score-${kid}`).innerText = data[kid].score;
                 const historyDiv = document.getElementById(`history-${kid}`);
                 historyDiv.innerHTML = "<strong>最近紀錄：</strong>";
-                
-                const logs = data[kid].history || [];
-                logs.slice(0, 15).forEach(item => {
+                (data[kid].history || []).slice(0, 10).forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'history-item';
-                    const isPlus = item.change.toString().includes('+');
-                    const colorClass = isPlus ? 'pos' : 'neg';
-                    div.innerHTML = `<small style="color:#999">${item.time}</small><br><span class="${colorClass}">${item.change}</span>: ${item.note}`;
+                    const colorClass = item.change.toString().includes('+') ? 'pos' : 'neg';
+                    div.innerHTML = `<small>${item.time}</small> <span class="${colorClass}">${item.change}</span>: ${item.note}`;
                     historyDiv.appendChild(div);
                 });
             });
         }
 
-        // 匯出紀錄為 TXT 檔
         function exportToFile() {
-            let content = "=== Jessie & Jim 行為集點完整紀錄 ===\n";
-            content += `匯出日期: ${new Date().toLocaleString()}\n\n`;
-
+            let content = "=== Jessie & Jim 集點紀錄 ===\n";
             ['jessie', 'jim'].forEach(kid => {
-                content += `【${kid.toUpperCase()}】 最終總分: ${data[kid].score}\n`;
-                content += "-------------------------------------------\n";
-                const logs = data[kid].history || [];
-                if (logs.length === 0) {
-                    content += "目前尚無紀錄\n";
-                } else {
-                    logs.forEach(h => {
-                        content += `${h.time} | 變動: ${h.change} | 原因: ${h.note} (餘額: ${h.currentScore})\n`;
-                    });
-                }
-                content += "\n\n";
+                content += `\n【${kid.toUpperCase()}】 總分: ${data[kid].score}\n`;
+                (data[kid].history || []).forEach(h => {
+                    content += `${h.time} | ${h.change} | ${h.note}\n`;
+                });
             });
-
             const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `小孩集點紀錄_${new Date().toISOString().slice(0,10)}.txt`;
+            link.download = `集點紀錄_${new Date().toLocaleDateString()}.txt`;
             link.click();
         }
     </script>

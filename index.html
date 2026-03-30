@@ -87,4 +87,70 @@
             const timestamp = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
 
             data[kid].score += change;
-            data[kid].
+            data[kid].history.unshift({
+                time: timestamp,
+                change: change > 0 ? `+${change}` : change,
+                note: note,
+                currentScore: data[kid].score
+            });
+
+            saveAndRender();
+            noteInput.value = "";
+        }
+
+        function clearData(kid) {
+            if (confirm(`確定要清除 ${kid} 的所有點數與紀錄嗎？此動作無法復原。`)) {
+                data[kid] = { score: 0, history: [] };
+                saveAndRender();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('kidPointsV2', JSON.stringify(data));
+            render();
+        }
+
+        function render() {
+            ['jessie', 'jim'].forEach(kid => {
+                document.getElementById(`score-${kid}`).innerText = data[kid].score;
+                const historyDiv = document.getElementById(`history-${kid}`);
+                historyDiv.innerHTML = "<strong>最近紀錄：</strong>";
+                
+                data[kid].history.slice(0, 8).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    const colorClass = item.change.toString().includes('+') ? 'pos' : 'neg';
+                    div.innerHTML = `<small>${item.time}</small> <span class="${colorClass}">${item.change}</span>: ${item.note}`;
+                    historyDiv.appendChild(div);
+                });
+            });
+        }
+
+        function exportToFile() {
+            let content = "=== Jessie & Jim 行為集點紀錄集 ===\n";
+            content += `導出時間: ${new Date().toLocaleString()}\n\n`;
+
+            ['jessie', 'jim'].forEach(kid => {
+                content += `【${kid.toUpperCase()}】 目前總分: ${data[kid].score}\n`;
+                content += "-----------------------------------\n";
+                if (data[kid].history.length === 0) {
+                    content += "尚無紀錄\n";
+                } else {
+                    data[kid].history.forEach(h => {
+                        content += `${h.time} | 變動: ${h.change} | 備註: ${h.note} (餘額: ${h.currentScore})\n`;
+                    });
+                }
+                content += "\n\n";
+            });
+
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `集點紀錄_${new Date().toLocaleDateString()}.txt`;
+            link.click();
+        }
+
+        render();
+    </script>
+</body>
+</html>

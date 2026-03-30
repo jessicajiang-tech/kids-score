@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jessie & Jim 集點大冒險 V2</title>
+    <style>
+        :root {
+            --jessie-color: #ffafcc;
+            --jim-color: #a2d2ff;
+            --bg-color: #f8f9fa;
+        }
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 1000px; }
+        .card { background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; width: 320px; text-align: center; position: relative; }
+        .jessie { border-top: 8px solid var(--jessie-color); }
+        .jim { border-top: 8px solid var(--jim-color); }
+        .score { font-size: 48px; font-weight: bold; margin: 10px 0; color: #333; }
+        .controls { display: flex; flex-direction: column; gap: 10px; }
+        input[type="text"] { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 14px; }
+        .plus { background-color: #57cc99; color: white; }
+        .minus { background-color: #ff4d6d; color: white; }
+        .clear-btn { background-color: #adb5bd; color: white; margin-top: 15px; width: 100%; }
+        .export-btn { background-color: #4361ee; color: white; padding: 12px 30px; font-size: 16px; margin-bottom: 20px; border-radius: 30px; }
+        button:hover { opacity: 0.8; }
+        .history { margin-top: 20px; text-align: left; font-size: 0.85em; height: 180px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
+        .history-item { margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 3px; }
+        .pos { color: #2d6a4f; font-weight: bold; }
+        .neg { color: #a4133c; font-weight: bold; }
+        .top-nav { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>🏆 Jessie & Jim 集點大冒險</h1>
+    
+    <div class="top-nav">
+        <button class="export-btn" onclick="exportToFile()">💾 下載完整紀錄 (.txt)</button>
+    </div>
+
+    <div class="container">
+        <div class="card jessie">
+            <h2>Jessie</h2>
+            <div id="score-jessie" class="score">0</div>
+            <div class="controls">
+                <input type="text" id="note-jessie" placeholder="加減分備註...">
+                <div class="btn-group">
+                    <button class="plus" onclick="updatePoints('jessie', 1)">+1 分</button>
+                    <button class="plus" onclick="updatePoints('jessie', 5)">+5 分</button>
+                    <button class="minus" onclick="updatePoints('jessie', -1)">-1 分</button>
+                    <button class="minus" onclick="updatePoints('jessie', -5)">-5 分</button>
+                </div>
+            </div>
+            <div class="history" id="history-jessie"><strong>最近紀錄：</strong></div>
+            <button class="clear-btn" onclick="clearData('jessie')">重設 Jessie 資料</button>
+        </div>
+
+        <div class="card jim">
+            <h2>Jim</h2>
+            <div id="score-jim" class="score">0</div>
+            <div class="controls">
+                <input type="text" id="note-jim" placeholder="加減分備註...">
+                <div class="btn-group">
+                    <button class="plus" onclick="updatePoints('jim', 1)">+1 分</button>
+                    <button class="plus" onclick="updatePoints('jim', 5)">+5 分</button>
+                    <button class="minus" onclick="updatePoints('jim', -1)">-1 分</button>
+                    <button class="minus" onclick="updatePoints('jim', -5)">-5 分</button>
+                </div>
+            </div>
+            <div class="history" id="history-jim"><strong>最近紀錄：</strong></div>
+            <button class="clear-btn" onclick="clearData('jim')">重設 Jim 資料</button>
+        </div>
+    </div>
+
+    <script>
+        let data = JSON.parse(localStorage.getItem('kidPointsV2')) || {
+            jessie: { score: 0, history: [] },
+            jim: { score: 0, history: [] }
+        };
+
+        function updatePoints(kid, change) {
+            const noteInput = document.getElementById(`note-${kid}`);
+            const note = noteInput.value.trim() || "表現優良/待改進";
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            data[kid].score += change;
+            data[kid].
